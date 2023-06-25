@@ -146,50 +146,55 @@ def load_image(final_img):
 
 @app.route('/test', methods=['GET', 'POST'])
 def make_app_images():
-    return jsonify({"Hello":"World"})
+    return jsonify({"Abdul is a":"SK"})
 
 @app.route('/upload', methods=['GET', 'POST'])
 def make_image():
     print('hello')
-    arm_file = request.files['arm_file']
-    #tattoo_file = request.files['tattoo_file']
-    novaX = int(request.form['x'])
-    novaY = int(request.form['y'])
-    novaHeight = int(request.form['height'])
-    novaWidth = int(request.form['width'])
-    print('hello1')
-    #arm_uri = request.json['armUri']
-    tattoo_uri = request.form['tattooUri']
-    print('hello2')
-
-    # Download the arm image
-    #response = requests.get(arm_uri)
-    #arm_img = Image.open(BytesIO(response.content))
+    data = request.get_json()
+    #arm_uri = data['armUri']  # Assume the arm image is now a URL
+    arm_file_base64 = data['armFile']
+    novaX = int(data['x'])
+    novaY = int(data['y'])
+    novaHeight = int(data['height'])
+    novaWidth = int(data['width'])
+    tattoo_uri = data['tattooUri']
 
     # Download the tattoo image
     from PIL import Image
     from io import BytesIO
-    response = requests.get(tattoo_uri)
-    tattoo_img = Image.open(BytesIO(response.content))
-    
-    img = PIL.Image.open(arm_file).convert('RGB')
+    headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
+    }
+
+    # Send request with headers
+    response = requests.get(tattoo_uri, headers=headers)
+
+    # Open the image
+    try:
+        tattoo_img = Image.open(BytesIO(response.content))
+    except Exception as e:
+        print(f"Could not open image: {e}")
+
     tattoo_image = tattoo_img
 
-    # Try to get the EXIF data
-    try:
-        exif_data = img._getexif()
-        if 274 in exif_data:    # 274 is the EXIF tag for Orientation
-            orientation = exif_data[274]
-            # Handle the orientation
-            if orientation == 3:
-                img = img.rotate(180, expand=True)
-            elif orientation == 6:
-                img = img.rotate(-90, expand=True)
-            elif orientation == 8:
-                img = img.rotate(90, expand=True)
-    except:
-        pass
+    arm_file_data = base64.b64decode(arm_file_base64)
+    img = Image.open(BytesIO(arm_file_data)).convert('RGB')
 
+    # Try to get the EXIF data
+#    try:
+ #       exif_data = img._getexif()
+  #      if 274 in exif_data:    # 274 is the EXIF tag for Orientation
+   #         orientation = exif_data[274]
+    #        # Handle the orientation
+     #       if orientation == 3:
+      #          img = img.rotate(180, expand=True)
+       #     elif orientation == 6:
+        #        img = img.rotate(-90, expand=True)
+         #   elif orientation == 8:
+          #      img = img.rotate(90, expand=True)
+   # except:
+   #     pass
     img_np = np.array(img)
 
     new_height = 1280
@@ -292,4 +297,5 @@ def make_image():
     return load_image(overlaid_image)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
+    #app.run(debug=True)
