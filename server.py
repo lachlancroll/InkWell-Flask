@@ -14,8 +14,6 @@ from skimage.transform import resize
 import cv2
 import requests
 
-
-
 app = Flask(__name__)
 CORS(app)
 
@@ -206,7 +204,6 @@ def make_image():
 
     ## Pre-Process Arm Image
     # Load the pre-trained model
-    model_preprocessing = models.segmentation.deeplabv3_resnet101(pretrained=True)
     model_preprocessing.eval()
 
     preprocessed_image = preprocess_and_predict(np.array(cropped_image)) #pass it to function
